@@ -8,6 +8,8 @@ import useAuth from "../../hook/useAuth";
 export const LogIn = () => {
   const navigate = useNavigate();
   const [presentUser, setPresentUser] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const { login } = useAuth();
 
   const loadpresentUser = (e) => {
@@ -16,60 +18,86 @@ export const LogIn = () => {
 
   const logIn = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
-      let res = await axios.post(BackendURL + "/auth/login", presentUser); // Corrected payload
+      let res = await axios.post(BackendURL + "/auth/login", presentUser);
       console.log(res.data);
       if (res.data.state) {
-        
-        setPresentUser({ username: "", password: "" }); // Resetting user info
-        navigate("/Manuscript");
+        login(presentUser);
+        setPresentUser({ username: "", password: "" });
+        navigate("/manuscript");
+      } else {
+        setError("Invalid credentials, please try again.");
       }
     } catch (error) {
       console.error("Login error:", error);
+      setError("An error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <form
       onSubmit={logIn}
-      className="max-w-[600px] mx-auto mt-[200px] p-[16px] bg-white border-[1px] border-[rgb(238, 192, 108)] border-dotted rounded-[8px]"
+      className="w-full max-w-lg mx-auto mt-[150px] p-8 bg-white rounded-lg shadow-lg dark:bg-gray-800"
     >
-      <h1>Login</h1>
-      <label htmlFor="username">
+      <h1 className="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Login</h1>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <label
+        htmlFor="username"
+        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+      >
         <b>Name</b>
       </label>
       <input
         name="username"
         type="text"
-        className="w-full p-[15px] mt-[5px] mb-[22px] bg-[#f1f1f1] border-none focus:bg-[#ddd] focus:outline-none"
+        className="input-login w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
         onChange={loadpresentUser}
         placeholder="Enter the name"
       />
-      <label htmlFor="password">
+      <label
+        htmlFor="password"
+        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+      >
         <b>Password</b>
       </label>
       <input
         name="password"
         type="password"
-        className="w-full p-[15px] mt-[5px] mb-[22px] bg-[#f1f1f1] border-none focus:bg-[#ddd] focus:outline-none"
+        className="input-login w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
         onChange={loadpresentUser}
-        placeholder="Correct!"
+        placeholder="Enter your password"
       />
-      <div
+      <div className="flex items-center mt-4">
+        <input
+          type="checkbox"
+          id="remember"
+          name="remember"
+          className="mr-2"
+        />
+        <label htmlFor="remember" className="text-sm text-gray-700 dark:text-gray-300">
+          Remember me
+        </label>
+      </div>
+      <button
         type="submit"
-        className="bg-[#04AA6D] text-white py-[16px] px-[20px] cursor-pointer w-full opacity-80 text-[18px] hover:opacity-100"
-        onClick={logIn}
+        className="w-full bg-blue-700 text-white font-semibold py-[10px] rounded-md hover:bg-blue-800 transition duration-200 ease-in-out mt-4"
+        disabled={loading}
       >
-        Login
-      </div>{" "}
-      {/* Changed to button */}
-      <Link
-        to="/Register"
-        className="bg-[#04AA6D] text-white py-[16px] px-[20px] cursor-pointer w-full opacity-80 text-[18px] hover:opacity-100 mt-[30px] block no-underline"
-      >
-        Register
-      </Link>{" "}
-      {/* Fixed typo */}
+        {loading ? "Loading..." : "Login"}
+      </button>
+      <p className="text-[15px] mt-4 font-normal text-gray-500 dark:text-gray-400">
+        Don’t have an account yet?{' '}
+        <Link
+          to="/register"
+          className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+        >
+          Register
+        </Link>
+      </p>
     </form>
   );
 };

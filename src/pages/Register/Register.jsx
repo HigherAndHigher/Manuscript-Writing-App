@@ -1,12 +1,14 @@
 import { useState } from "react";
 import "./Register.css";
-
 import axios from "axios";
 import { BackendURL } from "../../components/untile";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../hook/useAuth";
 
 const Register = () => {
   const navigate = useNavigate();
+
+  const { isLoggedIn, login } = useAuth();
 
   const [userinfor, setUserinfor] = useState({
     email: "",
@@ -15,99 +17,103 @@ const Register = () => {
   });
 
   const [passwordcon, setPasswordcon] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [err, setErr] = useState();
-
-  const setUser = (e) => {
-    setUserinfor((infor) => ({ ...infor, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    setUserinfor({ ...userinfor, [e.target.name]: e.target.value });
   };
 
-  const passWordcon = (e) => {
-    setPasswordcon(e.target.value);
-  };
-
-  const registeUser = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-
-    if (userinfor.password.length < 8) {
-      setErr("Your password must be more than 8 letters!");
-    } else if (userinfor.password != passwordcon) {
-      setErr("Type correctly!");
-    } else {
-      alert(userinfor.password);
-      let res = await axios.post(BackendURL + "/auth/register", {
-        userinfor,
-      });
-      console.log(res.data);
-      console.log(res.data.status);
-
-      if (res.status) {
-        setUserinfor({
-          email: "",
-          username: "",
-          password: "",
-        });
-        navigate("/Plan");
+    if (userinfor.password !== passwordcon) {
+      setError("Passwords do not match");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      let res = await axios.post(BackendURL + "/auth/register", userinfor);
+      if (res.data.state) {
+        login(userinfor);
+        navigate("/manuscript");
+      } else {
+        setError("Registration failed. Please try again.");
       }
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError("An error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <form
-      action=""
-      class="max-w-[600px] mx-auto mt-[200px] p-[16px] bg-white border-[1px] border-[rgb(238, 192, 108)] border-dotted rounded-[8px]"
+      onSubmit={handleRegister}
+      className="w-full max-w-lg mx-auto mt-[150px] p-8 bg-white rounded-lg shadow-lg dark:bg-gray-800"
     >
-      <h1>Register</h1>
-      <label for="email">
+      <h1 className="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Register</h1>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <label
+        htmlFor="email"
+        className="block text-sm font-medium text-gray-700 dark:text-gray-300 my-2"
+      >
         <b>Email</b>
       </label>
       <input
         name="email"
-        type="text"
-        className="w-full p-[15px] mt-[5px] mb-[22px] bg-[#f1f1f1] border-none focus:bg-[#ddd] focus:outline-none"
-        onChange={setUser}
-        placeholder="example@email.com"
+        type="email"
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+        onChange={handleChange}
+        placeholder="Enter your email"
       />
-      <label for="username">
-        <b>Name</b>
+      <label
+        htmlFor="username"
+        className="block text-sm font-medium text-gray-700 dark:text-gray-300 my-2"
+      >
+        <b>Username</b>
       </label>
       <input
         name="username"
         type="text"
-        className="w-full p-[15px] mt-[5px] mb-[22px] bg-[#f1f1f1] border-none focus:bg-[#ddd] focus:outline-none"
-        onChange={setUser}
-        placeholder="Enter the name"
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+        onChange={handleChange}
+        placeholder="Enter your username"
       />
-      <label for="password">
+      <label
+        htmlFor="password"
+        className="block text-sm font-medium text-gray-700 dark:text-gray-300 my-2"
+      >
         <b>Password</b>
       </label>
       <input
         name="password"
         type="password"
-        className="w-full p-[15px] mt-[5px] mb-[22px] bg-[#f1f1f1] border-none focus:bg-[#ddd] focus:outline-none"
-        onChange={setUser}
-        placeholder="at least 8 letters"
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+        onChange={handleChange}
+        placeholder="Enter your password"
       />
-      <label for="passwordcon">
-        <b>Password Confirm</b>
+      <label
+        htmlFor="passwordcon"
+        className="block text-sm font-medium text-gray-700 dark:text-gray-300 my-2"
+      >
+        <b>Confirm Password</b>
       </label>
       <input
         name="passwordcon"
         type="password"
-        className="w-full p-[15px] mt-[5px] mb-[22px] bg-[#f1f1f1] border-none focus:bg-[#ddd] focus:outline-none"
-        onChange={passWordcon}
-        placeholder="correct!"
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+        onChange={(e) => setPasswordcon(e.target.value)}
+        placeholder="Confirm your password"
       />
-      <div
+      <button
         type="submit"
-        className="bg-[#04AA6D] text-white py-[16px] px-[20px] cursor-pointer w-full opacity-80 text-[18px] hover:opacity-100"
-        onClick={registeUser}
+        className="w-full bg-blue-700 text-white font-semibold py-[10px] rounded-md hover:bg-blue-800 transition duration-200 ease-in-out mt-4"
+        disabled={loading}
       >
-        Register
-      </div>
-      <p className="text-[rgb(247, 5, 5)] flex justify-center text-[18px] font-[600]">
-        {err ? err : ""}
-      </p>
+        {loading ? "Registering..." : "Register"}
+      </button>
     </form>
   );
 };

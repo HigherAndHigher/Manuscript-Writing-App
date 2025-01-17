@@ -4,7 +4,6 @@ import { createContext, useState } from "react";
 const initialState = {
   user: {},
   isLoggedIn: false,
-  plan: 0,
 };
 
 // ==============================|| CONFIG CONTEXT & PROVIDER ||============================== //
@@ -19,7 +18,6 @@ export const AuthProvider = ({ children }) => {
       ...config,
       isLoggedIn: true,
       user: {
-        id: user._id,
         username: user.username,
         password: user.password,
       },
@@ -34,20 +32,12 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const chooseplan = (plan) => {
-    setConfig({
-      ...config,
-      plan: plan,
-    });
-  };
-
   return (
     <AuthContext.Provider
       value={{
         ...config,
         login,
         logout,
-        chooseplan,
       }}
     >
       {children}
